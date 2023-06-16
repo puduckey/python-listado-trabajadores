@@ -2,8 +2,12 @@ import tkinter as tk
 from tkinter import ttk
 
 class RegistroTrabajador(tk.Tk):
+    
     def __init__(self):
         super().__init__()
+        
+        self.listaCargasFamiliares = []
+        self.listaContactos = []
 
         self.title("Registro de Trabajador")
         self.geometry("600x500")
