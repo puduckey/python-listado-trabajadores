@@ -6,10 +6,21 @@ class RegistroTrabajador(tk.Tk):
         super().__init__()
 
         self.title("Registro de Trabajador")
-        self.geometry("500x500")
+        self.geometry("600x500")
+
+        self.scrollbar = tk.Scrollbar(self)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.canvas = tk.Canvas(self, yscrollcommand=self.scrollbar.set)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.scrollbar.config(command=self.canvas.yview)
+
+        self.container = ttk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.container, anchor=tk.NW)
 
         # Sección de Datos Personales
-        self.frame_datos_personales = ttk.LabelFrame(self, text="Datos Personales", padding=10)
+        self.frame_datos_personales = ttk.LabelFrame(self.container, text="Datos Personales", padding=10)
         self.frame_datos_personales.pack(pady=10)
         
         self.label_rut = tk.Label(self.frame_datos_personales, text="RUT:")
@@ -23,7 +34,6 @@ class RegistroTrabajador(tk.Tk):
         self.label_sexo = tk.Label(self.frame_datos_personales, text="Sexo:")
         self.combo_sexo = ttk.Combobox(self.frame_datos_personales, values=["Masculino", "Femenino"], state="readonly")
 
-        # posicionamiento de los componentes en la ventana
         self.label_rut.grid(row=0, column=0, sticky=tk.E)
         self.entry_rut.grid(row=0, column=1, padx=5)
         self.label_dv.grid(row=0, column=2, sticky=tk.W)
@@ -36,7 +46,7 @@ class RegistroTrabajador(tk.Tk):
         self.combo_sexo.grid(row=3, column=1)
 
         # seccion de Datos Laborales
-        self.frame_datos_laborales = ttk.LabelFrame(self, text="Datos Laborales", padding=10)
+        self.frame_datos_laborales = ttk.LabelFrame(self.container, text="Datos Laborales", padding=10)
         self.frame_datos_laborales.pack(pady=10)
         
         self.label_area = tk.Label(self.frame_datos_laborales, text="Área/Departamento:")
@@ -49,25 +59,102 @@ class RegistroTrabajador(tk.Tk):
             "Departamento de Tecnología de la Información",
             "Departamento de Calidad y Control de Procesos"
         ], state="readonly", width=40)
+        
         self.label_cargo = tk.Label(self.frame_datos_laborales, text="Cargo:")
         self.combo_cargo = ttk.Combobox(self.frame_datos_laborales, values=[], state="readonly", width=40)
 
         self.label_fecha_ingreso = tk.Label(self.frame_datos_laborales, text="Fecha de Ingreso:")
-        self.entry_fecha_ingreso = tk.Entry(self.frame_datos_laborales)
+
+        # Menús desplegables para día, mes y año
+        self.frame_fecha_ingreso = ttk.LabelFrame(self.frame_datos_laborales, text="Fecha de Ingreso", padding=10)
+        self.frame_fecha_ingreso.grid(row=2, column=0, columnspan=2, sticky="w")
         
-        self.label_area.grid(row=0, column=0, sticky=tk.E)
-        self.combo_area.grid(row=0, column=1, padx=5)
-        self.label_cargo.grid(row=1, column=0, sticky=tk.E)
-        self.combo_cargo.grid(row=1, column=1, padx=5)
-        self.label_fecha_ingreso.grid(row=2, column=0, sticky=tk.E)
-        self.entry_fecha_ingreso.grid(row=2, column=1)
+        self.label_dia = tk.Label(self.frame_fecha_ingreso, text="Día:")
+        self.combo_dia = ttk.Combobox(self.frame_fecha_ingreso, values=list(range(1, 32)), state="readonly", width=3)
+        self.label_dia.grid(row=0, column=0, padx=(0, 5))
+        self.combo_dia.grid(row=0, column=1)
+        
+        self.label_mes = tk.Label(self.frame_fecha_ingreso, text="Mes:")
+        self.combo_mes = ttk.Combobox(self.frame_fecha_ingreso, values=list(range(1, 13)), state="readonly", width=3)
+        self.label_mes.grid(row=0, column=2, padx=(10, 5))
+        self.combo_mes.grid(row=0, column=3)
+        
+        self.label_anio = tk.Label(self.frame_fecha_ingreso, text="Año:")
+        self.combo_anio = ttk.Combobox(self.frame_fecha_ingreso, values=list(range(1950, 2151)), state="readonly", width=4)
+        self.label_anio.grid(row=0, column=4, padx=(10, 5))
+        self.combo_anio.grid(row=0, column=5)
+        
+        self.label_area.grid(row=0, column=0, sticky=tk.E, pady=5)
+        self.combo_area.grid(row=0, column=1, pady=5)
+        self.label_cargo.grid(row=1, column=0, sticky=tk.E, pady=5)
+        self.combo_cargo.grid(row=1, column=1, pady=5)
+        
+
+        # Seccion Cargas Familiares
+        self.frame_cargas_familiares = ttk.LabelFrame(self.container, text="Cargas Familiares", padding=10)
+        self.frame_cargas_familiares.pack(pady=10)
+
+        self.tree_cargas_familiares = ttk.Treeview(self.frame_cargas_familiares, show="headings")
+        self.tree_cargas_familiares["columns"] = ("rut", "nombre", "sexo", "parentesco")
+
+        self.tree_cargas_familiares.heading("rut", text="RUT")
+        self.tree_cargas_familiares.heading("nombre", text="Nombre")
+        self.tree_cargas_familiares.heading("sexo", text="Sexo")
+        self.tree_cargas_familiares.heading("parentesco", text="Parentesco")
+
+        self.tree_cargas_familiares.column("rut", width=100)
+        self.tree_cargas_familiares.column("nombre", width=150)
+        self.tree_cargas_familiares.column("sexo", width=100)
+        self.tree_cargas_familiares.column("parentesco", width=150)
+
+        self.tree_cargas_familiares.pack(pady=10)
+        
+        self.agregar_carga = tk.Button(self.frame_cargas_familiares, text="Agregar", command=self.agregar_carga_familiar)
+        self.agregar_carga.pack(side=tk.RIGHT, padx=10, pady=10)
+        
+        # Seccion contactos
+        self.frame_contactos_emergencia = ttk.LabelFrame(self.container, text="Contactos de Emergencia", padding=10)
+        self.frame_contactos_emergencia.pack(pady=10)
+
+        self.tree_contactos_emergencia = ttk.Treeview(self.frame_contactos_emergencia, show="headings")
+        self.tree_contactos_emergencia["columns"] = ("nombre", "relacion", "telefono")
+
+        self.tree_contactos_emergencia.heading("nombre", text="Nombre")
+        self.tree_contactos_emergencia.heading("relacion", text="Relación")
+        self.tree_contactos_emergencia.heading("telefono", text="Teléfono")
+
+        self.tree_contactos_emergencia.column("nombre", width=150)
+        self.tree_contactos_emergencia.column("relacion", width=150)
+        self.tree_contactos_emergencia.column("telefono", width=100)
+
+        self.tree_contactos_emergencia.pack(pady=10)
+
+        self.agregar_carga = tk.Button(self.frame_contactos_emergencia, text="Agregar", command=self.agregar_contacto_emergencia)
+        self.agregar_carga.pack(side=tk.RIGHT, padx=10, pady=10)
+        
+        self.container.bind("<Configure>", self.on_frame_configure)
+
+        self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
 
         # boton de registro y cancelar
-        self.button_registrar = tk.Button(self, text="Registrar", command=self.registrar_trabajador)
+        self.button_registrar = tk.Button(self.container, text="Registrar", command=self.registrar_trabajador)
         self.button_registrar.pack()
 
         self.combo_sexo.current(0)  # seleccionar el primer valor por defecto
         self.combo_area.bind("<<ComboboxSelected>>", self.actualizar_cargos) # actualiza seleccion
+
+        
+        
+        # datos de ejmplo
+        # self.tree_cargas_familiares.insert("", "end", values=("123456789", "Juan Pérez", "Masculino", "Hijo"))
+        # self.tree_contactos_emergencia.insert("", "end", values=("María López", "Amigo", "987654321"))
+
+
+    def on_frame_configure(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def actualizar_cargos(self, event):
         area_seleccionada = self.combo_area.get()
@@ -130,6 +217,12 @@ class RegistroTrabajador(tk.Tk):
 
         self.combo_cargo.config(values=cargos)
         self.combo_cargo.current(0)
+
+    def agregar_carga_familiar(self):
+        print("agregar_carga_familiar")
+
+    def agregar_contacto_emergencia(self):
+        print("agregar_contacto_emergencia")
 
     def registrar_trabajador(self):
         rut = self.entry_rut.get()

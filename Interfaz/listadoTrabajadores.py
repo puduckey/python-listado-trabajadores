@@ -1,7 +1,8 @@
+import sys
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from Interfaz.InterfazRegistroTrabajador import RegistroTrabajador
+from Interfaz.registroTrabajador import RegistroTrabajador
 
 class InterfazListadoTrabajadores(tk.Tk):
     def __init__(self):
@@ -57,6 +58,7 @@ class InterfazListadoTrabajadores(tk.Tk):
     def cerrar_sesion(self):
         messagebox.showinfo("Cerrar Sesión", "Sesión cerrada correctamente")
         self.destroy()
+        sys.exit()
 
 if __name__ == "__main__":
     app = InterfazListadoTrabajadores()

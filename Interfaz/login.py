@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from Interfaz.InterfazListadoTrabajadores import InterfazListadoTrabajadores
+from Interfaz.listadoTrabajadores import InterfazListadoTrabajadores
 
 class Login(tk.Tk):
     def __init__(self):
@@ -26,7 +26,7 @@ class Login(tk.Tk):
         password = self.entry_password.get()
 
         # Aquí iría la lógica de autenticación y verificación de usuarios
-        if usuario == "admin" and password == "1234":
+        if usuario == "admin" and password == "123":
             messagebox.showinfo("Inicio de sesión", "¡Inicio de sesión exitoso!")
             # Aquí podrías abrir una nueva ventana o realizar otras acciones según el perfil del usuario
             self.destroy()  # Cierra la ventana de inicio de sesión
