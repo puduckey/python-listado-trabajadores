@@ -35,8 +35,6 @@ class Login(tk.Tk):
         else:
             messagebox.showerror("Inicio de sesión", "¡Usuario o contraseña incorrectos!")
 
-# Puedes agregar más clases y funciones relacionadas con la interfaz aquí
-
 if __name__ == "__main__":
     app = Login()
     app.mainloop()

@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
+from Clases.Trabajador import Trabajador
+from Clases.CargaFamiliar import CargaFamiliar
+from Clases.ContactoEmergencia import ContactoEmergencia
 
 class RegistroTrabajador(tk.Tk):
     
@@ -147,12 +150,11 @@ class RegistroTrabajador(tk.Tk):
         self.combo_sexo.current(0)  # seleccionar el primer valor por defecto
         self.combo_area.bind("<<ComboboxSelected>>", self.actualizar_cargos) # actualiza seleccion
 
-        
-        
         # datos de ejmplo
         # self.tree_cargas_familiares.insert("", "end", values=("123456789", "Juan Pérez", "Masculino", "Hijo"))
         # self.tree_contactos_emergencia.insert("", "end", values=("María López", "Amigo", "987654321"))
 
+        self.actualizar_lista_cargas_familiares()
 
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -223,10 +225,70 @@ class RegistroTrabajador(tk.Tk):
         self.combo_cargo.current(0)
 
     def agregar_carga_familiar(self):
-        print("agregar_carga_familiar")
+        ventana_carga_familiar = tk.Toplevel(self)
+        ventana_carga_familiar.title("Agregar Carga Familiar")
+
+        # Etiqueta y entrada para el RUT
+        label_rut = tk.Label(ventana_carga_familiar, text="RUT:")
+        entry_rut = tk.Entry(ventana_carga_familiar, width=20)
+        label_rut.grid(row=0, column=0, padx=5, pady=5)
+        entry_rut.grid(row=0, column=1, padx=5, pady=5)
+
+        # Etiqueta y entrada para el dígito verificador
+        label_dv = tk.Label(ventana_carga_familiar, text="Dígito Verificador:")
+        entry_dv = tk.Entry(ventana_carga_familiar, width=5)
+        label_dv.grid(row=1, column=0, padx=5, pady=5)
+        entry_dv.grid(row=1, column=1, padx=5, pady=5)
+
+        # Etiqueta y entrada para el nombre
+        label_nombre = tk.Label(ventana_carga_familiar, text="Nombre:")
+        entry_nombre = tk.Entry(ventana_carga_familiar)
+        label_nombre.grid(row=2, column=0, padx=5, pady=5)
+        entry_nombre.grid(row=2, column=1, padx=5, pady=5)
+
+        label_apellido = tk.Label(ventana_carga_familiar, text="Apellido:")
+        entry_apellido = tk.Entry(ventana_carga_familiar)
+        label_apellido.grid(row=3, column=0, padx=5, pady=5)
+        entry_apellido.grid(row=3, column=1, padx=5, pady=5)
+    
+        # Menú desplegable para el sexo
+        label_sexo = tk.Label(ventana_carga_familiar, text="Sexo:")
+        combo_sexo = ttk.Combobox(ventana_carga_familiar, values=["Masculino", "Femenino"], state="readonly")
+        label_sexo.grid(row=4, column=0, padx=5, pady=5)
+        combo_sexo.grid(row=4, column=1, padx=5, pady=5)
+
+        # Menú desplegable para el parentesco
+        label_parentesco = tk.Label(ventana_carga_familiar, text="Parentesco:")
+        parentescos = ["Hijo/a", "Cónyuge", "Padre", "Madre", "Hermano/a"]
+        combo_parentesco = ttk.Combobox(ventana_carga_familiar, values=parentescos, state="readonly")
+        label_parentesco.grid(row=5, column=0, padx=5, pady=5)
+        combo_parentesco.grid(row=5, column=1, padx=5, pady=5)
+
+        def guardar_carga_familiar():
+            rut = entry_rut.get()
+            dv = entry_dv.get()
+            nombre = entry_nombre.get()
+            apellido = entry_apellido.get()
+            sexo = combo_sexo.get()
+            parentesco = combo_parentesco.get()
+
+            carga_familiar = CargaFamiliar(rut, dv, nombre, apellido, sexo, parentesco)
+            ventana_carga_familiar.destroy()
+            # Aquí puedes hacer algo con la carga familiar, como almacenarla en una lista o enviarla a una base de datos
+            self.listaCargasFamiliares.append(carga_familiar)
+            self.actualizar_lista_cargas_familiares()
+
+        # Botón para guardar la carga familiar
+        button_guardar = tk.Button(ventana_carga_familiar, text="Guardar", command=guardar_carga_familiar)
+        button_guardar.grid(row=6, column=0, columnspan=2, padx=5, pady=10)
 
     def agregar_contacto_emergencia(self):
         print("agregar_contacto_emergencia")
+
+    def actualizar_lista_cargas_familiares(self):
+        self.tree_cargas_familiares.delete(*self.tree_cargas_familiares.get_children())
+        for carga_familiar in self.listaCargasFamiliares:
+            self.tree_cargas_familiares.insert("", "end", values=(carga_familiar.rut + "-" + carga_familiar.rut_dv, carga_familiar.nombre + " " + carga_familiar.apellido, carga_familiar.sexo, carga_familiar.parentesco))
 
     def registrar_trabajador(self):
         rut = self.entry_rut.get()
