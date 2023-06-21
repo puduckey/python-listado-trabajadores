@@ -1,15 +1,19 @@
 import tkinter as tk
+import re
+import datetime
 from tkinter import ttk
 from tkinter import messagebox
 from Clases.Trabajador import Trabajador
 from Clases.CargaFamiliar import CargaFamiliar
 from Clases.ContactoEmergencia import ContactoEmergencia
+from Database.conexion import DAO
 
 class RegistroTrabajador(tk.Tk):
     
     def __init__(self):
         super().__init__()
         
+        self.listaTelefonos = []
         self.listaCargasFamiliares = []
         self.listaContactos = []
 
@@ -41,7 +45,12 @@ class RegistroTrabajador(tk.Tk):
         self.entry_apellido = tk.Entry(self.frame_datos_personales)
         self.label_sexo = tk.Label(self.frame_datos_personales, text="Sexo:")
         self.combo_sexo = ttk.Combobox(self.frame_datos_personales, values=["Masculino", "Femenino"], state="readonly")
-
+        self.label_telefono = tk.Label(self.frame_datos_personales, text="Teléfonos:")
+        self.entry_telefono = tk.Entry(self.frame_datos_personales)
+        self.boton_agregar_telefono = tk.Button(self.frame_datos_personales, text="Agregar", command=self.agregar_telefono)
+        self.boton_borrar_telefono = tk.Button(self.frame_datos_personales, text="Borrar", command=self.borrar_telefono)
+        self.lista_telefonos = tk.Listbox(self.frame_datos_personales)
+        
         self.label_rut.grid(row=0, column=0, sticky=tk.E)
         self.entry_rut.grid(row=0, column=1, padx=5)
         self.label_dv.grid(row=0, column=2, sticky=tk.W)
@@ -52,6 +61,12 @@ class RegistroTrabajador(tk.Tk):
         self.entry_apellido.grid(row=2, column=1)
         self.label_sexo.grid(row=3, column=0, sticky=tk.E)
         self.combo_sexo.grid(row=3, column=1)
+        
+        self.label_telefono.grid(row=4, column=0, sticky=tk.E)
+        self.entry_telefono.grid(row=4, column=1)
+        self.boton_agregar_telefono.grid(row=4, column=2)
+        self.boton_borrar_telefono.grid(row=4, column=3)
+        self.lista_telefonos.grid(row=5, column=1, columnspan=3, pady=10)
 
         # seccion de Datos Laborales
         self.frame_datos_laborales = ttk.LabelFrame(self.container, text="Datos Laborales", padding=10)
@@ -160,10 +175,6 @@ class RegistroTrabajador(tk.Tk):
 
         self.combo_sexo.current(0)  # seleccionar el primer valor por defecto
         self.combo_area.bind("<<ComboboxSelected>>", self.actualizar_cargos) # actualiza seleccion
-
-        # datos de ejmplo
-        # self.tree_cargas_familiares.insert("", "end", values=("123456789", "Juan Pérez", "Masculino", "Hijo"))
-        # self.tree_contactos_emergencia.insert("", "end", values=("María López", "Amigo", "987654321"))
 
         self.actualizar_lista_cargas_familiares()
 
@@ -286,7 +297,24 @@ class RegistroTrabajador(tk.Tk):
         combo_parentesco.grid(row=5, column=1, padx=5, pady=5)
         combo_parentesco.set(carga.parentesco)
 
+        def validar_formulario():
+            campos = [entry_rut.get(), entry_dv.get(), entry_nombre.get(), entry_apellido.get(), combo_sexo.get(), combo_parentesco.get()]
+            if all(campos):
+                if(self.validar_rut(campos[0] + campos[1])):
+                    return True
+                else:
+                    ventana_carga_familiar.grab_set()
+                    messagebox.showerror("Formulario no válido", "Por favor, ingrese un RUT válido.")
+                    return False
+            else:
+                ventana_carga_familiar.grab_set()
+                messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.")
+                return False
+
         def guardar_carga_familiar():
+            if not validar_formulario():
+                return
+            
             rut = entry_rut.get()
             dv = entry_dv.get()
             nombre = entry_nombre.get()
@@ -338,6 +366,7 @@ class RegistroTrabajador(tk.Tk):
             edicion = False
         
         ventana_contacto = tk.Toplevel(self)
+        ventana_contacto.grab_set()
         ventana_contacto.title("Agregar Carga Familiar")
         if edicion:
             ventana_contacto.title("Editar Carga Familiar")
@@ -371,7 +400,22 @@ class RegistroTrabajador(tk.Tk):
         entry_telefono.grid(row=3, column=1, padx=5, pady=5)
         entry_telefono.insert(tk.END, contacto.telefono)
 
+        def validar_formulario():
+            campos = [entry_nombre.get(), entry_apellido.get(), combo_relacion.get(), entry_telefono.get()]
+            if all(campos):
+                if(self.validar_telefono(campos[3])):
+                    return True
+                else:
+                    messagebox.showerror("Formulario no válido", "Por favor, ingrese un número teléfonico válido.")
+                    return False
+            else:
+                messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.")
+                return False
+        
         def guardar_contacto():
+            if (validar_formulario() == False):
+                return
+            
             nombre = entry_nombre.get()
             apellido = entry_apellido.get()
             relacion = combo_relacion.get()
@@ -419,7 +463,56 @@ class RegistroTrabajador(tk.Tk):
         for contacto in self.listaContactos:
             self.tree_contactos_emergencia.insert("", "end", values=(contacto.nombre + " " + contacto.apellido, contacto.relacion, contacto.telefono))
 
+    # telefonos
+
+    def agregar_telefono(self):
+        telefono = self.entry_telefono.get()
+        
+        if not self.validar_telefono(telefono): # valida el numero de telefono
+            messagebox.showerror("Teléfono no válido", "Por favor, ingrese un número de teléfono valido.")
+            return
+        
+        if telefono:
+            self.listaTelefonos.append(telefono)
+            self.actualizar_listado_telefonos()
+
+    def borrar_telefono(self):
+        seleccionado = self.lista_telefonos.curselection()
+        if seleccionado:
+            indice = seleccionado[0]
+            del self.listaTelefonos[indice]
+            self.actualizar_listado_telefonos()
+
+    def actualizar_listado_telefonos(self):
+        self.lista_telefonos.delete(0, tk.END)
+        for telefono in self.listaTelefonos:
+            self.lista_telefonos.insert(tk.END, telefono)
+    
+    def validar_formulario(self):
+        campos = [self.entry_rut.get(), self.entry_dv.get(), self.entry_nombre.get(), 
+                  self.entry_apellido.get(), self.combo_sexo.get(), self.combo_area.get(), 
+                  self.combo_cargo.get(), self.combo_dia.get(), self.combo_mes.get(), self.combo_anio.get()]
+        
+        if not all(campos):
+            messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.")
+            return False
+            
+        if not self.validar_rut(campos[0] + campos[1]):
+            messagebox.showerror("Formulario no válido", "Por favor, ingrese un número teléfonico válido.")
+            return False
+        
+        if not self.validar_fecha(campos[7], campos[8], campos[9]):
+            messagebox.showerror("Formulario no válido", "Por favor, ingrese una fecha válida.")
+            return False
+        
+        return True
+
     def registrar_trabajador(self):
+        
+        if not self.validar_formulario():
+            return False
+        
+        # Validacion
         rut = self.entry_rut.get()
         dv = self.entry_dv.get()
         nombre = self.entry_nombre.get()
@@ -427,16 +520,58 @@ class RegistroTrabajador(tk.Tk):
         sexo = self.combo_sexo.get()
         area = self.combo_area.get()
         cargo = self.combo_cargo.get()
-        fecha_ingreso = self.entry_fecha_ingreso.get()
+        fecha_dia = self.combo_dia.get()
+        fecha_mes = self.combo_mes.get()
+        fecha_anio = self.combo_anio.get()
 
-        # Validacion y registro a bd
+        # registro a bd
         
         
         # exito
-        mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_ingreso}"
+        mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}"
         tk.messagebox.showinfo("Registro Exitoso", mensaje)
         self.destroy()
+    
+    def validar_rut(self, rut):
+        rut = rut.upper().replace(".", "").replace("-", "")
+        rut = rut[:-1] + "-" + rut[-1]
 
+        rut_numero, rut_verificador = rut.split("-")
+
+        if not rut_numero.isdigit() or len(rut_numero) < 1:
+            return False
+
+        suma = 0
+        multiplicador = 2
+        for digito in reversed(rut_numero):
+            suma += int(digito) * multiplicador
+            multiplicador = multiplicador + 1 if multiplicador < 7 else 2
+
+        digito_verificador_esperado = str(11 - (suma % 11))
+        if digito_verificador_esperado == "11":
+            digito_verificador_esperado = "0"
+        elif digito_verificador_esperado == "10":
+            digito_verificador_esperado = "K"
+
+        return digito_verificador_esperado == rut_verificador
+    
+    def validar_telefono(self, telefono):
+        patron = r'^[0-9+]+$'
+        if re.match(patron, telefono):
+            return True
+        else:
+            return False
+    
+    def validar_fecha(self, dia, mes, anio):
+        try:
+            dia = int(dia)
+            mes = int(mes)
+            anio = int(anio)
+            datetime.date(anio, mes, dia)
+            return True
+        except ValueError:
+            return False
+                
 if __name__ == "__main__":
     app = RegistroTrabajador()
     app.mainloop()
