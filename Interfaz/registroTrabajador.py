@@ -512,7 +512,6 @@ class RegistroTrabajador(tk.Tk):
         if not self.validar_formulario():
             return False
         
-        # Validacion
         rut = self.entry_rut.get()
         dv = self.entry_dv.get()
         nombre = self.entry_nombre.get()
@@ -524,8 +523,10 @@ class RegistroTrabajador(tk.Tk):
         fecha_mes = self.combo_mes.get()
         fecha_anio = self.combo_anio.get()
 
+        # FALTA: direccion trabajador en formulario y obtener telefonos
+        # se debe crear la clase trabajador y pasarla a DAO
         # registro a bd
-        
+        # trabajador = Trabajador(rut, dv, nombre, apellido, sexo, )
         
         # exito
         mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}"
