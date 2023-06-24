@@ -18,27 +18,28 @@ class DAO:
             try:
                 cursor = self.conexion.cursor(buffered=True)
                 # OBTENER EL ID DEL SEXO
-                query = "SELECT id FROM sexo WHERE nombre = {0}"
+                query = "SELECT id FROM sexo WHERE nombre = '{0}'"
                 cursor.execute(query.format(trabajador.sexo))
                 resultado = cursor.fetchone()
                 id_sexo = resultado[0]
                 
                 # INSERTAR TRABAJADOR
-                query = "INSERT INTO trabajador (rut, rut_dv, nombre, apellido, sexo, direccion) VALUES ({0},{1},{2},{3},{4},{5})"
+                query = "INSERT INTO trabajador (rut, rut_dv, nombre, apellido, sexo, direccion) VALUES ({0},'{1}','{2}','{3}',{4},'{5}')"
                 cursor.execute(query.format(trabajador.rut, trabajador.rut_dv, trabajador.nombre, trabajador.apellido, id_sexo, trabajador.direccion))
 
                 # INSERTAR TELEFONOS
-                query = "INSERT INTO telefono (numero, trabajador_rut) VALUES({0},{1})"
+                query = "INSERT INTO telefono (numero, trabajador_rut) VALUES('{0}',{1})"
+                print(trabajador.telefonos)
                 for telefono in trabajador.telefonos:
                     cursor.execute(query.format(telefono, trabajador.rut))
                     
                 # OBTENER ID CARGO, ID DEPARTAMENTO Y FORMATEO FECHA
-                query = "SELECT id FROM cargo WHERE nombre = {0}"
+                query = "SELECT id FROM cargo WHERE nombre = '{0}'"
                 cursor.execute(query.format(trabajador.cargo))
                 resultado = cursor.fetchone()
                 id_cargo = resultado[0]
                 
-                query = "SELECT id FROM areadepartamento WHERE nombre = {0}"
+                query = "SELECT id FROM areadepartamento WHERE nombre = '{0}'"
                 cursor.execute(query.format(trabajador.departamento))
                 resultado = cursor.fetchone()
                 id_departamento = resultado[0]   
@@ -46,7 +47,7 @@ class DAO:
                 fecha = str(trabajador.fecha_aaaa) + "-" + str(trabajador.fecha_mm) + "-" + str(trabajador.fecha_dd)
                 
                 # INSERTAR DATOSLABORALES
-                query = "INSERT INTO datoslaborales (cargo_id, area_departamento, fecha_ingreso, trabajador_rut) VALUES({0},{1},{2},{3})"
+                query = "INSERT INTO datoslaborales (cargo_id, area_departamento, fecha_ingreso, trabajador_rut) VALUES({0},{1},'{2}',{3})"
                 cursor.execute(query.format(id_cargo, id_departamento, fecha, trabajador.rut))
                 
                 # COMMIT

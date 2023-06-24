@@ -45,6 +45,8 @@ class RegistroTrabajador(tk.Tk):
         self.entry_apellido = tk.Entry(self.frame_datos_personales)
         self.label_sexo = tk.Label(self.frame_datos_personales, text="Sexo:")
         self.combo_sexo = ttk.Combobox(self.frame_datos_personales, values=["Masculino", "Femenino"], state="readonly")
+        self.label_direccion = tk.Label(self.frame_datos_personales, text="Dirección:")
+        self.entry_direccion = tk.Entry(self.frame_datos_personales)
         self.label_telefono = tk.Label(self.frame_datos_personales, text="Teléfonos:")
         self.entry_telefono = tk.Entry(self.frame_datos_personales)
         self.boton_agregar_telefono = tk.Button(self.frame_datos_personales, text="Agregar", command=self.agregar_telefono)
@@ -62,11 +64,14 @@ class RegistroTrabajador(tk.Tk):
         self.label_sexo.grid(row=3, column=0, sticky=tk.E)
         self.combo_sexo.grid(row=3, column=1)
         
-        self.label_telefono.grid(row=4, column=0, sticky=tk.E)
-        self.entry_telefono.grid(row=4, column=1)
-        self.boton_agregar_telefono.grid(row=4, column=2)
-        self.boton_borrar_telefono.grid(row=4, column=3)
-        self.lista_telefonos.grid(row=5, column=1, columnspan=3, pady=10)
+        self.label_direccion.grid(row=4, column=0, sticky=tk.E)
+        self.entry_direccion.grid(row=4, column=1)
+
+        self.label_telefono.grid(row=5, column=0, sticky=tk.E)
+        self.entry_telefono.grid(row=5, column=1)
+        self.boton_agregar_telefono.grid(row=5, column=2)
+        self.boton_borrar_telefono.grid(row=5, column=3)
+        self.lista_telefonos.grid(row=6, column=1, columnspan=3, pady=10)
 
         # seccion de Datos Laborales
         self.frame_datos_laborales = ttk.LabelFrame(self.container, text="Datos Laborales", padding=10)
@@ -467,6 +472,7 @@ class RegistroTrabajador(tk.Tk):
 
     def agregar_telefono(self):
         telefono = self.entry_telefono.get()
+        print("telefono: " + telefono)
         
         if not self.validar_telefono(telefono): # valida el numero de telefono
             messagebox.showerror("Teléfono no válido", "Por favor, ingrese un número de teléfono valido.")
@@ -490,7 +496,7 @@ class RegistroTrabajador(tk.Tk):
     
     def validar_formulario(self):
         campos = [self.entry_rut.get(), self.entry_dv.get(), self.entry_nombre.get(), 
-                  self.entry_apellido.get(), self.combo_sexo.get(), self.combo_area.get(), 
+                  self.entry_apellido.get(), self.combo_sexo.get(), self.entry_direccion.get(), self.combo_area.get(), 
                   self.combo_cargo.get(), self.combo_dia.get(), self.combo_mes.get(), self.combo_anio.get()]
         
         if not all(campos):
@@ -498,10 +504,10 @@ class RegistroTrabajador(tk.Tk):
             return False
             
         if not self.validar_rut(campos[0] + campos[1]):
-            messagebox.showerror("Formulario no válido", "Por favor, ingrese un número teléfonico válido.")
+            messagebox.showerror("Formulario no válido", "Por favor, ingrese un RUT válido.")
             return False
         
-        if not self.validar_fecha(campos[7], campos[8], campos[9]):
+        if not self.validar_fecha(campos[8], campos[9], campos[10]):
             messagebox.showerror("Formulario no válido", "Por favor, ingrese una fecha válida.")
             return False
         
@@ -517,6 +523,7 @@ class RegistroTrabajador(tk.Tk):
         nombre = self.entry_nombre.get()
         apellido = self.entry_apellido.get()
         sexo = self.combo_sexo.get()
+        direccion = self.entry_direccion.get()
         area = self.combo_area.get()
         cargo = self.combo_cargo.get()
         fecha_dia = self.combo_dia.get()
@@ -527,9 +534,12 @@ class RegistroTrabajador(tk.Tk):
         # se debe crear la clase trabajador y pasarla a DAO
         # registro a bd
         # trabajador = Trabajador(rut, dv, nombre, apellido, sexo, )
-        
+        trabajador = Trabajador(rut, dv, nombre, apellido, sexo, direccion, self.listaTelefonos, 0, cargo, area, fecha_dia, fecha_mes, fecha_anio)
+        db = DAO()
+        db.RegistrarTrabajador(trabajador)
+
         # exito
-        mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}"
+        mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nDireccion: {direccion}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}"
         tk.messagebox.showinfo("Registro Exitoso", mensaje)
         self.destroy()
     
@@ -559,7 +569,10 @@ class RegistroTrabajador(tk.Tk):
     def validar_telefono(self, telefono):
         patron = r'^[0-9+]+$'
         if re.match(patron, telefono):
-            return True
+            if len(telefono) > 12 or len(telefono) < 8:
+                return False
+            else:
+                return True
         else:
             return False
     
