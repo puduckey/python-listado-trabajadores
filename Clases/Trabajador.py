@@ -1,4 +1,4 @@
-#rut nombre sexo cargo
+#rut nombre sexo departamento cargo
 class Trabajador:
     def __init__(self, rut, rut_dv, nombre, apellido, sexo, direccion, telefonos, 
                  datoslabID, cargo, departamento, fecha_dd, fecha_mm, fecha_aaaa):
