@@ -54,12 +54,11 @@ CREATE TABLE telefono (
 );
 
 CREATE TABLE datoslaborales (
-    id                INT AUTO_INCREMENT,
+    trabajador_rut    INT NOT NULL,
     cargo_id          INT NOT NULL,
     area_departamento INT NOT NULL,
     fecha_ingreso     DATE NOT NULL,
-    trabajador_rut    INT NOT NULL,
-    PRIMARY KEY (id),
+    PRIMARY KEY (trabajador_rut),
     FOREIGN KEY (cargo_id) REFERENCES cargo (id),
     FOREIGN KEY (area_departamento) REFERENCES areadepartamento (id),
     FOREIGN KEY (trabajador_rut) REFERENCES trabajador (rut)

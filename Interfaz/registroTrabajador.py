@@ -9,13 +9,17 @@ from Clases.ContactoEmergencia import ContactoEmergencia
 from Database.conexion import DAO
 
 class RegistroTrabajador(tk.Tk):
-    
     def __init__(self):
         super().__init__()
+        self.actualizando = False
         
         self.listaTelefonos = []
         self.listaCargasFamiliares = []
         self.listaContactos = []
+        
+        self.familiaresBorrados = []
+        self.telefonosBorrados = []
+        self.contactosBorrados = []
 
         self.title("Registro de Trabajador")
         self.geometry("600x500")
@@ -184,6 +188,8 @@ class RegistroTrabajador(tk.Tk):
         self.actualizar_lista_cargas_familiares()
 
     def mostrar_datos_trabajador(self, trabajador, listaFamiliares, listaContactos):
+        self.actualizando = True
+        
         self.listaTelefonos = trabajador.telefonos
         self.listaCargasFamiliares = listaFamiliares
         self.listaContactos = listaContactos
@@ -203,7 +209,7 @@ class RegistroTrabajador(tk.Tk):
         self.actualizar_listado_telefonos()
         self.actualizar_lista_cargas_familiares()
         self.actualizar_lista_contactos()
-
+        
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
@@ -349,7 +355,6 @@ class RegistroTrabajador(tk.Tk):
             parentesco = combo_parentesco.get()
 
             ventana_carga_familiar.destroy()
-            # Aquí puedes hacer algo con la carga familiar, como almacenarla en una lista o enviarla a una base de datos
             if edicion:
                 carga.rut = rut
                 carga.rut_dv = dv
@@ -363,7 +368,6 @@ class RegistroTrabajador(tk.Tk):
                 
             self.actualizar_lista_cargas_familiares()
 
-        # Botón para guardar la carga familiar
         button_guardar = tk.Button(ventana_carga_familiar, text="Guardar", command=guardar_carga_familiar)
         button_guardar.grid(row=6, column=0, columnspan=2, padx=5, pady=10)
 
@@ -380,6 +384,7 @@ class RegistroTrabajador(tk.Tk):
         selected_item = self.tree_cargas_familiares.selection()
         if selected_item:
             index = int(self.tree_cargas_familiares.index(selected_item))
+            self.familiaresBorrados.append(self.listaCargasFamiliares[index]) # guardar los familiares borrados
             self.listaCargasFamiliares.pop(index)
             self.actualizar_lista_cargas_familiares()
             messagebox.showinfo("Carga familiar eliminada", "¡La carga familiar seleccionada ha sido borrada!")
@@ -438,6 +443,8 @@ class RegistroTrabajador(tk.Tk):
                 messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.")
                 return False
         
+        # CONTACTOS
+        
         def guardar_contacto():
             if (validar_formulario() == False):
                 return
@@ -468,13 +475,13 @@ class RegistroTrabajador(tk.Tk):
         selected_item = self.tree_contactos_emergencia.selection()
         if selected_item:
             index = int(self.tree_contactos_emergencia.index(selected_item))
-            print(index)
             self.agregar_contacto_emergencia(self.listaContactos[index])
 
     def eliminar_contacto_emergencia(self):
         selected_item = self.tree_contactos_emergencia.selection()
         if selected_item:
             index = int(self.tree_contactos_emergencia.index(selected_item))
+            self.contactosBorrados.append(self.listaContactos[index]) # guarda al contacto borrado
             self.listaContactos.pop(index)
             self.actualizar_lista_contactos()
             messagebox.showinfo("Contacto eliminado", "¡El contacto seleccionado ha sido borrado!")
@@ -489,7 +496,7 @@ class RegistroTrabajador(tk.Tk):
         for contacto in self.listaContactos:
             self.tree_contactos_emergencia.insert("", "end", values=(contacto.nombre + " " + contacto.apellido, contacto.relacion, contacto.telefono))
 
-    # telefonos
+    # TELEFONOS
 
     def agregar_telefono(self):
         telefono = self.entry_telefono.get()
@@ -507,6 +514,7 @@ class RegistroTrabajador(tk.Tk):
         seleccionado = self.lista_telefonos.curselection()
         if seleccionado:
             indice = seleccionado[0]
+            self.telefonosBorrados.append(self.listaTelefonos[indice])
             del self.listaTelefonos[indice]
             self.actualizar_listado_telefonos()
 
@@ -549,11 +557,25 @@ class RegistroTrabajador(tk.Tk):
         fecha_dia = self.combo_dia.get()
         fecha_mes = self.combo_mes.get()
         fecha_anio = self.combo_anio.get()
+        
+        db = DAO()
+
+        # Borra los telefonos eliminados
+        for telefono in self.telefonosBorrados: 
+            db.BorrarTelefono(telefono, rut)
 
         # registro a bd
-        trabajador = Trabajador(rut, dv, nombre, apellido, sexo, direccion, self.listaTelefonos, 0, cargo, area, fecha_dia, fecha_mes, fecha_anio)
-        db = DAO()
+        trabajador = Trabajador(rut, dv, nombre, apellido, sexo, direccion, self.listaTelefonos, cargo, area, fecha_dia, fecha_mes, fecha_anio)
+        
         db.RegistrarTrabajador(trabajador)
+    
+        # Borra los familiares eliminados
+        for familiar in self.familiaresBorrados:
+            db.BorrarCargaFamiliar(familiar.id)
+        
+        # Borra los contactos eliminados
+        for contacto in self.contactosBorrados:
+            db.BorrarContactoEmergencia(contacto.id)
         
         for familiar in self.listaCargasFamiliares:
             db.RegistrarCargaFamiliar(familiar, trabajador.rut)
