@@ -73,39 +73,22 @@ class InterfazListadoTrabajadores(tk.Tk):
         self.tabla.insert("", tk.END, text="", values=(rut, nombre, sexo, areadepartamento, cargo))
 
     def registrar_trabajador(self):
-        # messagebox.showinfo("Registro de Trabajador", "Funcionalidad de registro de trabajador")
         registro_trabajador = RegistroTrabajador()
         registro_trabajador.mainloop()
 
     def modificar_trabajador(self):
         seleccionado = self.tabla.selection()
         if seleccionado:
-            ## Obtener datos del trabajador seleccionado
-            #valores = self.tabla.item(seleccionado)["values"]
-            #rut = valores[0].split("-")[0]  # Extraer el RUT sin el dígito verificador
-            #nombre = valores[1]
+            valores = self.tabla.item(seleccionado)["values"]
+            rut = valores[0].replace("-", "")[:-1]
+            db = DAO()
+            trabajador = db.ObtenerTrabajador(rut)
+            listaFamiliares = db.ObtenerCargasFamiliares(rut)
+            listaContactos = db.ObtenerContactosEmergencia(rut)
             
-            ## Mostrar ventana de modificación con los datos del trabajador
-            #ventana_modificar = tk.Toplevel(self)
-            #ventana_modificar.title("Modificar Trabajador")
-            
-            ## Crear campos de entrada para modificar los datos
-            #label_rut = tk.Label(ventana_modificar, text="RUT:")
-            #label_rut.pack()
-            #entry_rut = tk.Entry(ventana_modificar)
-            #entry_rut.pack()
-            #entry_rut.insert(tk.END, rut)
-            
-            #label_nombre = tk.Label(ventana_modificar, text="Nombre:")
-            #label_nombre.pack()
-            #entry_nombre = tk.Entry(ventana_modificar)
-            #entry_nombre.pack()
-            #entry_nombre.insert(tk.END, nombre)
-            
-            ## Botón para guardar los cambios
-            #boton_guardar = tk.Button(ventana_modificar, text="Guardar cambios")
-            #boton_guardar.pack()
-            messagebox.showinfo("Ver mi perfil", "Funcionalidad para modificar el perfil del usuario")
+            registro_trabajador = RegistroTrabajador()
+            registro_trabajador.mostrar_datos_trabajador(trabajador, listaFamiliares, listaContactos)
+            registro_trabajador.mainloop()
         else:
             messagebox.showwarning("Seleccionar Trabajador", "Por favor, seleccione un trabajador de la lista.")
 

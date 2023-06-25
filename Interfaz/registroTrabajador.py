@@ -183,6 +183,27 @@ class RegistroTrabajador(tk.Tk):
 
         self.actualizar_lista_cargas_familiares()
 
+    def mostrar_datos_trabajador(self, trabajador, listaFamiliares, listaContactos):
+        self.listaTelefonos = trabajador.telefonos
+        self.listaCargasFamiliares = listaFamiliares
+        self.listaContactos = listaContactos
+        
+        self.entry_rut.insert(tk.END, trabajador.rut)
+        self.entry_dv.insert(tk.END, trabajador.rut_dv)
+        self.entry_nombre.insert(tk.END, trabajador.nombre)
+        self.entry_apellido.insert(tk.END, trabajador.apellido)
+        self.combo_sexo.set(trabajador.sexo)
+        self.entry_direccion.insert(tk.END, trabajador.direccion)
+        self.combo_area.set(trabajador.departamento)
+        self.combo_cargo.set(trabajador.cargo)
+        self.combo_dia.set(trabajador.fecha_dd)
+        self.combo_mes.set(trabajador.fecha_mm)
+        self.combo_anio.set(trabajador.fecha_aaaa)
+        
+        self.actualizar_listado_telefonos()
+        self.actualizar_lista_cargas_familiares()
+        self.actualizar_lista_contactos()
+
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
@@ -461,7 +482,7 @@ class RegistroTrabajador(tk.Tk):
     def actualizar_lista_cargas_familiares(self):
         self.tree_cargas_familiares.delete(*self.tree_cargas_familiares.get_children())
         for carga_familiar in self.listaCargasFamiliares:
-            self.tree_cargas_familiares.insert("", "end", values=(carga_familiar.rut + "-" + carga_familiar.rut_dv, carga_familiar.nombre + " " + carga_familiar.apellido, carga_familiar.sexo, carga_familiar.parentesco))
+            self.tree_cargas_familiares.insert("", "end", values=(str(carga_familiar.rut) + "-" + str(carga_familiar.rut_dv), str(carga_familiar.nombre) + " " + str(carga_familiar.apellido), str(carga_familiar.sexo), str(carga_familiar.parentesco)))
 
     def actualizar_lista_contactos(self):
         self.tree_contactos_emergencia.delete(*self.tree_contactos_emergencia.get_children())
@@ -514,7 +535,6 @@ class RegistroTrabajador(tk.Tk):
         return True
 
     def registrar_trabajador(self):
-        
         if not self.validar_formulario():
             return False
         

@@ -1,6 +1,8 @@
 import mysql.connector
 from mysql.connector import Error
 from Clases.Trabajador import Trabajador
+from Clases.CargaFamiliar import CargaFamiliar
+from Clases.ContactoEmergencia import ContactoEmergencia
 
 class DAO:
     def __init__(self):
@@ -147,7 +149,7 @@ class DAO:
                         apellido=apellido,
                         sexo=sexo,
                         direccion=direccion,
-                        telefonos=[],
+                        telefonos=listaTelefonos,
                         datoslabID=id_datoslaborales,
                         cargo=cargo,
                         departamento=area_departamento,
@@ -187,6 +189,44 @@ class DAO:
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
                 
+    def ObtenerCargasFamiliares(self, trabajador_rut):
+        if self.conexion.is_connected():
+            try:
+                cursor = self.conexion.cursor(buffered=True)
+                query = """SELECT cargafamiliar.id, cargafamiliar.rut, cargafamiliar.rut_dv, 
+                cargafamiliar.nombre, cargafamiliar.apellido, sexo.nombre as 'sexo', 
+                parentesco.nombre as 'parentesco'
+                FROM cargafamiliar
+                LEFT JOIN sexo ON cargafamiliar.sexo = sexo.id
+                LEFT JOIN parentesco ON cargafamiliar.parentesco_id = parentesco.id
+                WHERE trabajador_rut = {0}
+                """
+                cursor.execute(query.format(trabajador_rut))
+                resultados = cursor.fetchall()
+                
+                listaFamiliares = []
+                # print("Cantidad de familiares: " + len(resultados))
+                
+                for resultado in resultados:
+                    familiar = CargaFamiliar(int(resultado[0]), int(resultado[1]), resultado[2], resultado[3],
+                                             resultado[4], resultado[5], resultado[6])
+                    listaFamiliares.append(familiar)
+                    
+                for familiar in listaFamiliares:
+                    print("ID:", str(familiar.id))
+                    print("RUT:", str(familiar.rut))
+                    print("DV:", familiar.rut_dv)
+                    print("Nombre:", familiar.nombre)
+                    print("Apellido:", familiar.apellido)
+                    print("Sexo:", familiar.sexo)
+                    print("Parentesco:", familiar.parentesco)
+                    print("----------------------")
+
+
+                return listaFamiliares
+            except Error as ex:
+                print("Error de conexión: {0} ".format(ex))
+                
     def RegistrarContactoEmergencia(self, contacto, trabajador_rut):
         if self.conexion.is_connected():
             try:
@@ -206,5 +246,26 @@ class DAO:
                 cursor.execute(query.format(contacto.nombre, contacto.apellido, id_parentesco, contacto.telefono, trabajador_rut))
                 self.conexion.commit()
                 
+            except Error as ex:
+                print("Error de conexión: {0} ".format(ex))
+    
+    def ObtenerContactosEmergencia(self, trabajador_rut):
+        if self.conexion.is_connected():
+            try:
+                cursor = self.conexion.cursor(buffered=True)
+                query = """SELECT ce.id, ce.nombre, ce.apellido, parentesco.nombre as 'relacion', ce.telefono
+                FROM contactosemergencia AS ce
+                LEFT JOIN parentesco ON ce.relacion = parentesco.id
+                WHERE trabajador_rut = {0}
+                """
+                cursor.execute(query.format(trabajador_rut))
+                resultados = cursor.fetchall()
+                
+                listaContactos = []
+                
+                for resultado in resultados:
+                    contactos = ContactoEmergencia(resultado[0], resultado[1], resultado[2], resultado[3], resultado[4])
+                    listaContactos.append(contactos)
+                return listaContactos
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
