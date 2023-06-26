@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from Interfaz.listadoTrabajadores import InterfazListadoTrabajadores
+from Database.conexion import DAO
 
 class Login(tk.Tk):
     def __init__(self):
@@ -26,11 +27,13 @@ class Login(tk.Tk):
         password = self.entry_password.get()
 
         # Aquí iría la lógica de autenticación y verificación de usuarios
-        if usuario == "admin" and password == "123":
+        db = DAO()
+        usuario = db.IniciarSesion(usuario, password)
+        if usuario is not None:
             messagebox.showinfo("Inicio de sesión", "¡Inicio de sesión exitoso!")
             # Aquí podrías abrir una nueva ventana o realizar otras acciones según el perfil del usuario
             self.destroy()  # Cierra la ventana de inicio de sesión
-            listado_trabajadores = InterfazListadoTrabajadores()
+            listado_trabajadores = InterfazListadoTrabajadores(usuario)
             listado_trabajadores.mainloop()
         else:
             messagebox.showerror("Inicio de sesión", "¡Usuario o contraseña incorrectos!")

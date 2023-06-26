@@ -6,61 +6,62 @@ from Interfaz.registroTrabajador import RegistroTrabajador
 from Database.conexion import DAO
 
 class InterfazListadoTrabajadores(tk.Tk):
-    def __init__(self):
+    def __init__(self, usuario):
         super().__init__()
 
-        self.title("Listado de Trabajadores")
-        self.geometry("800x600")
+        if usuario.identificacion != "Trabajador":
+            self.title("Listado de Trabajadores")
+            self.geometry("800x600")
 
-        # Tabla
-        self.tabla = ttk.Treeview(self)
-        self.tabla["columns"] = ("rut", "nombre", "sexo","area", "cargo")
+            # Tabla
+            self.tabla = ttk.Treeview(self)
+            self.tabla["columns"] = ("rut", "nombre", "sexo","area", "cargo")
 
-        # Columnas
-        self.tabla.column("#0", width=0, stretch=tk.NO)  # Columna oculta
-        self.tabla.column("rut", anchor=tk.W, width=100)
-        self.tabla.column("nombre", anchor=tk.W, width=200)
-        self.tabla.column("sexo", anchor=tk.W, width=100)
-        self.tabla.column("area", anchor=tk.W, width=200)
-        self.tabla.column("cargo", anchor=tk.W, width=200)
+            # Columnas
+            self.tabla.column("#0", width=0, stretch=tk.NO)  # Columna oculta
+            self.tabla.column("rut", anchor=tk.W, width=100)
+            self.tabla.column("nombre", anchor=tk.W, width=200)
+            self.tabla.column("sexo", anchor=tk.W, width=100)
+            self.tabla.column("area", anchor=tk.W, width=200)
+            self.tabla.column("cargo", anchor=tk.W, width=200)
 
-        # Encabezados de columna
-        self.tabla.heading("rut", text="RUT")
-        self.tabla.heading("nombre", text="Nombre")
-        self.tabla.heading("sexo", text="Sexo")
-        self.tabla.heading("area", text="Area/Departamento")
-        self.tabla.heading("cargo", text="Cargo")
+            # Encabezados de columna
+            self.tabla.heading("rut", text="RUT")
+            self.tabla.heading("nombre", text="Nombre")
+            self.tabla.heading("sexo", text="Sexo")
+            self.tabla.heading("area", text="Area/Departamento")
+            self.tabla.heading("cargo", text="Cargo")
 
-        self.label = tk.Label(self, text="Listado de trabajadores")
-        self.label.pack()
+            self.label = tk.Label(self, text="Listado de trabajadores")
+            self.label.pack()
 
-        # Lectura de datos
-        # Datos de ejemplo
-        self.obtener_lista_trabajadores()
+            # Lectura de datos
+            # Datos de ejemplo
+            self.obtener_lista_trabajadores()
 
-        # Agregar tabla a la interfaz
-        self.tabla.pack(expand=True, fill=tk.BOTH)
+            # Agregar tabla a la interfaz
+            self.tabla.pack(expand=True, fill=tk.BOTH)
 
-        # Botón para registrar nuevos trabajadores
-        self.boton_registrar = tk.Button(self, text="Registrar Trabajador", command=self.registrar_trabajador)
-        self.boton_registrar.pack(side=tk.LEFT, padx=10, pady=10)
+            # Botón para registrar nuevos trabajadores
+            self.boton_registrar = tk.Button(self, text="Registrar Trabajador", command=self.registrar_trabajador)
+            self.boton_registrar.pack(side=tk.LEFT, padx=10, pady=10)
 
-        # Botón para modificar trabajador seleccionado
-        self.boton_modificar = tk.Button(self, text="Modificar seleccionado", command=self.modificar_trabajador)
-        self.boton_modificar.pack(side=tk.LEFT, padx=10, pady=10)
+            # Botón para modificar trabajador seleccionado
+            self.boton_modificar = tk.Button(self, text="Modificar seleccionado", command=self.modificar_trabajador)
+            self.boton_modificar.pack(side=tk.LEFT, padx=10, pady=10)
+            
+            # Botón para refrescar lista de trabajadores
+            self.boton_refrescar = tk.Button(self, text="Refrescar lista", command=self.refrescar_lista_trabajadores)
+            self.boton_refrescar.pack(side=tk.LEFT, padx=10, pady=10)
+            
+            # Botón para filtrar lista de trabajadores
+            self.boton_filtrar = tk.Button(self, text="Filtrar lista", command=self.ventana_filtrar)
+            self.boton_filtrar.pack(side=tk.LEFT, padx=10, pady=10)
 
         # Botón para ver el perfil del trabajador
         self.boton_perfil = tk.Button(self, text="Ver mi perfil", command=self.ver_perfil)
         self.boton_perfil.pack(side=tk.LEFT, padx=10, pady=10)
-
-        # Botón para refrescar lista de trabajadores
-        self.boton_refrescar = tk.Button(self, text="Refrescar lista", command=self.refrescar_lista_trabajadores)
-        self.boton_refrescar.pack(side=tk.LEFT, padx=10, pady=10)
     
-        # Botón para filtrar lista de trabajadores
-        self.boton_filtrar = tk.Button(self, text="Filtrar lista", command=self.ventana_filtrar)
-        self.boton_filtrar.pack(side=tk.LEFT, padx=10, pady=10)
-
         # Botón para cerrar sesión y volver al inicio de sesión
         self.boton_cerrar_sesion = tk.Button(self, text="Cerrar Sesión", command=self.cerrar_sesion)
         self.boton_cerrar_sesion.pack(side=tk.RIGHT, padx=10, pady=10)

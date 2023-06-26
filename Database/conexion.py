@@ -3,6 +3,7 @@ from mysql.connector import Error
 from Clases.Trabajador import Trabajador
 from Clases.CargaFamiliar import CargaFamiliar
 from Clases.ContactoEmergencia import ContactoEmergencia
+from Clases.Usuario import Usuario
 
 class DAO:
     def __init__(self):
@@ -15,6 +16,34 @@ class DAO:
             print("Conexion exitosa")
         except Error as ex:
             print("Error de conexión: {0} ".format(ex))
+            
+    def IniciarSesion(self, username, password):
+        if self.conexion.is_connected():
+            try:
+                cursor = self.conexion.cursor(buffered=True)
+                
+                query = """
+                SELECT c.username, c.password, i.nombre
+                FROM credencial AS c
+                INNER JOIN identificacion AS i ON c.identificacion_id = i.id
+                WHERE c.username = %s
+                """
+                cursor.execute(query, (username,))
+                resultado = cursor.fetchone()
+
+                # Verificar las credenciales
+                if resultado is not None:
+                    db_username, db_password, identificacion_nombre = resultado
+                    if password == db_password:
+                        usuario = Usuario(db_username, identificacion_nombre)
+                        return usuario
+                    else:
+                        return None
+                else:
+                    return None
+                
+            except Error as ex:
+                print("Error de conexión: {0} ".format(ex))
     
     def RegistrarTrabajador(self, trabajador):
         if self.conexion.is_connected():
