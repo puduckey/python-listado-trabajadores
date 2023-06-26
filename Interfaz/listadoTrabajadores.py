@@ -56,6 +56,10 @@ class InterfazListadoTrabajadores(tk.Tk):
         # Botón para refrescar lista de trabajadores
         self.boton_refrescar = tk.Button(self, text="Refrescar lista", command=self.refrescar_lista_trabajadores)
         self.boton_refrescar.pack(side=tk.LEFT, padx=10, pady=10)
+    
+        # Botón para filtrar lista de trabajadores
+        self.boton_filtrar = tk.Button(self, text="Filtrar lista", command=self.ventana_filtrar)
+        self.boton_filtrar.pack(side=tk.LEFT, padx=10, pady=10)
 
         # Botón para cerrar sesión y volver al inicio de sesión
         self.boton_cerrar_sesion = tk.Button(self, text="Cerrar Sesión", command=self.cerrar_sesion)
@@ -98,6 +102,107 @@ class InterfazListadoTrabajadores(tk.Tk):
     def refrescar_lista_trabajadores(self):
         self.tabla.delete(*self.tabla.get_children())
         self.obtener_lista_trabajadores()
+    
+    def ventana_filtrar(self):
+        ventana_filtros = tk.Toplevel(self)
+        ventana_filtros.title("Filtrar lista")
+        ventana_filtros.geometry("250x250")
+        ventana_filtros.transient(self)
+        ventana_filtros.grab_set()
+
+        # Variables de control para los menús desplegables
+        sexo_var = tk.StringVar()
+        cargo_var = tk.StringVar()
+        area_var = tk.StringVar()
+
+        def confirmar_filtro():
+            # Obtener los valores seleccionados de los menús desplegables
+            sexo = sexo_var.get()
+            cargo = cargo_var.get()
+            area = area_var.get()
+
+            # Cerrar la ventana emergente
+            ventana_filtros.destroy()
+
+            # Llamar a la función para filtrar la lista de trabajadores
+            self.filtrar_lista_trabajadores(sexo, cargo, area)
+
+
+        label_sexo = tk.Label(ventana_filtros, text="Sexo:")
+        label_cargo = tk.Label(ventana_filtros, text="Cargo:")
+        label_area = tk.Label(ventana_filtros, text="Área:")
+        # Crear menús desplegables
+        sexo_menu = ttk.Combobox(ventana_filtros, textvariable=sexo_var, values=["Masculino", "Femenino"], width=20)
+        cargo_menu = ttk.Combobox(ventana_filtros, textvariable=cargo_var, values=[
+            "Gerente de Operaciones",
+            "Supervisor de Distribución",
+            "Supervisor de Entrega",
+            "Personal de Clasificación y Distribución",
+            "Personal de Entrega",
+            "Gerente de Atención al Cliente",
+            "Representante de Servicio al Cliente",
+            "Especialista en Seguimiento de Envíos",
+            "Coordinador de Reclamaciones",
+            "Gerente de Ventas y Marketing",
+            "Ejecutivo de Ventas",
+            "Especialista en Marketing Digital",
+            "Coordinador de Alianzas Comerciales",
+            "Gerente de Recursos Humanos",
+            "Contador",
+            "Analista Financiero",
+            "Especialista en Cuentas por Pagar",
+            "Especialista en Cuentas por Cobrar",
+            "Gerente Financiero",
+            "Especialista en Reclutamiento y Selección",
+            "Especialista en Capacitación y Desarrollo",
+            "Coordinador de Nómina y Beneficios",
+            "Especialista en Relaciones Laborales",
+            "Gerente de Tecnología de la Información",
+            "Administrador de Sistemas",
+            "Desarrollador de Software",
+            "Especialista en Seguridad Informática",
+            "Técnico de Soporte Técnico",
+            "Gerente de Logística y Almacén",
+            "Coordinador de Inventarios",
+            "Planificador de Rutas",
+            "Especialista en Cadena de Suministro",
+            "Almacenista"
+        ], width=40)
+        area_menu = ttk.Combobox(ventana_filtros, textvariable=area_var, values=[
+            "Departamento de Operaciones",
+            "Departamento de Servicio al Cliente",
+            "Departamento de Ventas y Marketing",
+            "Departamento de Recursos Humanos",
+            "Departamento Financiero y Contable",
+            "Departamento de Tecnología de la Información",
+            "Departamento de Calidad y Control de Procesos"
+        ], width=40)
+        # Crear botón "Aceptar"
+        boton_aceptar = tk.Button(ventana_filtros, text="Aceptar", command=confirmar_filtro)
+
+        # Posicionar los elementos en la ventana
+        label_sexo.pack()
+        sexo_menu.pack()
+        label_cargo.pack()
+        cargo_menu.pack()
+        label_area.pack()
+        area_menu.pack()
+        boton_aceptar.pack()
+    
+    def filtrar_lista_trabajadores(self, sexo, cargo, area):
+        self.tabla.delete(*self.tabla.get_children())
+        
+        if sexo == '':
+            sexo = None        
+        if cargo == '':
+            cargo = None        
+        if area == '':
+            area = None
+        
+        db = DAO()
+        lista = db.ObtenerTrabajadoresFiltrados(sexo, cargo, area)
+        for trabajador in lista:
+            self.agregar_trabajador(str(trabajador.rut) + "-" + trabajador.rut_dv, trabajador.nombre + " " + trabajador.apellido, trabajador.sexo, trabajador.departamento, trabajador.cargo)
     
     def cerrar_sesion(self):
         messagebox.showinfo("Cerrar Sesión", "Sesión cerrada correctamente")

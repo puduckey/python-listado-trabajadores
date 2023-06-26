@@ -115,6 +115,68 @@ class DAO:
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
     
+    def ObtenerTrabajadoresFiltrados(self, sexo = None, cargo = None, area = None):
+        if self.conexion.is_connected():
+            try:
+                cursor = self.conexion.cursor(buffered=True)
+                query = """
+                SELECT t.rut, t.rut_dv, t.nombre, t.apellido, sexo.nombre as 'sexo', 
+                car.nombre as 'cargo', ad.nombre as 'area_departamento'
+                FROM trabajador AS t
+                LEFT JOIN datoslaborales AS dl ON t.rut = dl.trabajador_rut
+                LEFT JOIN areadepartamento AS ad ON dl.area_departamento = ad.id
+                LEFT JOIN cargo AS car ON dl.cargo_id = car.id
+                LEFT JOIN sexo ON t.sexo = sexo.id
+                """
+                where_clause = ""
+                
+                # Condiciones
+                if sexo is not None:
+                    where_clause += "sexo.nombre = '{0}' ".format(sexo)
+                if cargo is not None:
+                    if where_clause:
+                        where_clause += "AND "
+                    where_clause += "car.nombre = '{0}' ".format(cargo)
+                if area is not None:
+                    if where_clause:
+                        where_clause += "AND "
+                    where_clause += "ad.nombre = '{0}' ".format(area)
+
+                if where_clause:
+                    query += "WHERE " + where_clause
+                
+                print("Consulta SQL: {0}".format(query))
+                cursor.execute(query)
+                resultados = cursor.fetchall()
+                
+                lista_trabajadores = []
+                
+                for fila in resultados:
+                    rut, rut_dv, nombre, apellido, sexo, cargo, area_departamento = fila
+                    
+                    trabajador = Trabajador(
+                        rut=rut,
+                        rut_dv=rut_dv,
+                        nombre=nombre,
+                        apellido=apellido,
+                        sexo=sexo,
+                        direccion="",
+                        telefonos=[],
+                        cargo=cargo,
+                        departamento=area_departamento,
+                        fecha_dd=1,
+                        fecha_mm=1,
+                        fecha_aaaa=1
+                    )
+                    lista_trabajadores.append(trabajador)
+                
+                cursor.close()
+                
+                return lista_trabajadores
+
+            except Error as ex:
+                print("Error de conexión: {0} ".format(ex))
+                
     def ObtenerTrabajador(self, rut):
         if self.conexion.is_connected():
             try:
