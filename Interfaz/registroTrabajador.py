@@ -244,19 +244,19 @@ class RegistroTrabajador(tk.Tk):
             ]
         elif area_seleccionada == "Departamento de Recursos Humanos":
             cargos = [
-                "Gerente de Recursos Humanos",
-                "Contador",
-                "Analista Financiero",
-                "Especialista en Cuentas por Pagar",
-                "Especialista en Cuentas por Cobrar"
-            ]
-        elif area_seleccionada == "Departamento Financiero y Contable":
-            cargos = [
-                "Gerente Financiero",
+                "Gerente de Recursos Humanos",                
                 "Especialista en Reclutamiento y Selección",
                 "Especialista en Capacitación y Desarrollo",
                 "Coordinador de Nómina y Beneficios",
                 "Especialista en Relaciones Laborales"
+            ]
+        elif area_seleccionada == "Departamento Financiero y Contable":
+            cargos = [
+                "Gerente Financiero",
+                "Contador",
+                "Analista Financiero",
+                "Especialista en Cuentas por Pagar",
+                "Especialista en Cuentas por Cobrar"
             ]
         elif area_seleccionada == "Departamento de Tecnología de la Información":
             cargos = [
@@ -536,11 +536,19 @@ class RegistroTrabajador(tk.Tk):
             messagebox.showerror("Formulario no válido", "Por favor, ingrese un RUT válido.")
             return False
         
+        if not self.actualizando and self.validar_si_rut_existe(campos[0]):
+            messagebox.showerror("Formulario no válido", "El RUT ingresado ya se encuentra registrado.")
+            return False
+        
         if not self.validar_fecha(campos[8], campos[9], campos[10]):
             messagebox.showerror("Formulario no válido", "Por favor, ingrese una fecha válida.")
             return False
         
         return True
+
+    def validar_si_rut_existe(self, rut):
+        db = DAO()
+        return db.ValidarSiRutExiste(rut)
 
     def registrar_trabajador(self):
         if not self.validar_formulario():
@@ -558,6 +566,9 @@ class RegistroTrabajador(tk.Tk):
         fecha_mes = self.combo_mes.get()
         fecha_anio = self.combo_anio.get()
         
+        username = nombre.lower() + "." + apellido.lower()
+        password = "abc123"
+        
         db = DAO()
 
         # Borra los telefonos eliminados
@@ -567,7 +578,7 @@ class RegistroTrabajador(tk.Tk):
         # registro a bd
         trabajador = Trabajador(rut, dv, nombre, apellido, sexo, direccion, self.listaTelefonos, cargo, area, fecha_dia, fecha_mes, fecha_anio)
         
-        db.RegistrarTrabajador(trabajador)
+        usernameRegistrado = db.RegistrarTrabajador(trabajador, username, password, self.actualizando)
     
         # Borra los familiares eliminados
         for familiar in self.familiaresBorrados:
@@ -584,7 +595,7 @@ class RegistroTrabajador(tk.Tk):
             db.RegistrarContactoEmergencia(contacto, trabajador.rut)
 
         # exito
-        mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nDireccion: {direccion}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}"
+        mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nDireccion: {direccion}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}\nCredenciales por defecto\nNombre de usuario: {usernameRegistrado}\nContraseña: {password}"
         tk.messagebox.showinfo("Registro Exitoso", mensaje)
         self.destroy()
     

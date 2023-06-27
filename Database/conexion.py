@@ -45,7 +45,7 @@ class DAO:
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
     
-    def RegistrarTrabajador(self, trabajador):
+    def RegistrarTrabajador(self, trabajador, username, password, actualizando):
         if self.conexion.is_connected():
             try:
                 cursor = self.conexion.cursor(buffered=True)
@@ -62,7 +62,6 @@ class DAO:
                 cursor.execute(query.format(trabajador.rut, trabajador.rut_dv, trabajador.nombre, trabajador.apellido, id_sexo, trabajador.direccion))
 
                 # INSERTAR TELEFONOS
-                print(trabajador.telefonos)
                 for telefono in trabajador.telefonos:
                     # verificar si el telefono existe
                     resultado = None
@@ -91,8 +90,37 @@ class DAO:
                 ON DUPLICATE KEY UPDATE cargo_id = {1}, area_departamento = {2}, fecha_ingreso = '{3}'"""
                 cursor.execute(query.format(trabajador.rut, id_cargo, id_departamento, fecha))
                 
+                # INSERTAR CREDENCIAL
+                if not actualizando:
+                    username = self.CrearNombreUsuario(cursor, username)
+                    query = """INSERT INTO credencial (username, password, identificacion_id) VALUES('{0}','{1}',{2})
+                    ON DUPLICATE KEY UPDATE password = '{1}', identificacion_id = {2}"""
+                    print("cargo: " + trabajador.cargo)
+                    cursor.execute(query.format(username, password, self.ObtenerIdentificacion(trabajador.cargo)))
+                    
+                    query = "INSERT INTO credencialtrabajador (usuario_username, trabajador_rut) VALUES('{0}',{1})"
+                    cursor.execute(query.format(username, trabajador.rut))
+                else:
+                    respuesta = None
+                    query = """
+                    SELECT c.username
+                    FROM trabajador t
+                    JOIN credencialtrabajador ct ON t.rut = ct.trabajador_rut
+                    JOIN credencial c ON ct.usuario_username = c.username
+                    WHERE t.rut = {0};
+                    """
+                    cursor.execute(query.format(trabajador.rut))
+                    respuesta = cursor.fetchone()
+                    
+                    if respuesta is not None:
+                        username = respuesta[0]
+                        query = "UPDATE credencial SET identificacion_id = {0} WHERE username = '{1}'"
+                        cursor.execute(query.format(self.ObtenerIdentificacion(trabajador.cargo), username))
+                    
                 # COMMIT
                 self.conexion.commit()
+                
+                return username
                 
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
@@ -259,6 +287,46 @@ class DAO:
                 return trabajador
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
+    
+    def ObtenerIdentificacion(self, cargo):
+        if cargo == "Administrador de Sistemas":
+            return 1
+        elif cargo == "Gerente de Recursos Humanos":
+            return 3
+        elif cargo == "Especialista en Reclutamiento y Selección":
+            return 2
+        elif cargo == "Especialista en Capacitación y Desarrollo":
+            return 2
+        elif cargo == "Coordinador de Nómina y Beneficios":
+            return 2
+        elif cargo == "Especialista en Relaciones Laborales":
+            return 2
+        else:
+            return 4
+    
+    def ValidarSiRutExiste(self, rut):
+        cursor = self.conexion.cursor(buffered=True)
+        query = "SELECT nombre FROM trabajador where rut={0}"
+        cursor.execute(query.format(rut))
+        resultado = cursor.fetchone()
+        if resultado is not None:
+            return True
+        return False
+    
+    def CrearNombreUsuario(self, cursor, username):
+        usernameSinIndice = username
+        indice = 0
+        while True:
+            indice += 1
+            resultado = None
+            query = "SELECT username FROM credencial where username='{0}'"
+            cursor.execute(query.format(username))
+            resultado = cursor.fetchone()
+            if resultado is not None:
+                username = usernameSinIndice + str(indice)
+            else:
+                break
+        return username
                 
     def RegistrarCargaFamiliar(self, familiar, trabajador_rut):
         if self.conexion.is_connected():

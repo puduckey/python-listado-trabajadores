@@ -54,9 +54,10 @@ class InterfazListadoTrabajadores(tk.Tk):
             self.boton_refrescar = tk.Button(self, text="Refrescar lista", command=self.refrescar_lista_trabajadores)
             self.boton_refrescar.pack(side=tk.LEFT, padx=10, pady=10)
             
-            # Botón para filtrar lista de trabajadores
-            self.boton_filtrar = tk.Button(self, text="Filtrar lista", command=self.ventana_filtrar)
-            self.boton_filtrar.pack(side=tk.LEFT, padx=10, pady=10)
+            if usuario.identificacion == "Administrador" or usuario.identificacion == "Jefe RRHH":
+                # Botón para filtrar lista de trabajadores
+                self.boton_filtrar = tk.Button(self, text="Filtrar lista", command=self.ventana_filtrar)
+                self.boton_filtrar.pack(side=tk.LEFT, padx=10, pady=10)
 
         # Botón para ver el perfil del trabajador
         self.boton_perfil = tk.Button(self, text="Ver mi perfil", command=self.ver_perfil)
