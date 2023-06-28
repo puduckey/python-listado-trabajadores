@@ -3,12 +3,15 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from Interfaz.registroTrabajador import RegistroTrabajador
+from Interfaz.perfil import PerfilUsuario
 from Database.conexion import DAO
 
 class InterfazListadoTrabajadores(tk.Tk):
     def __init__(self, usuario):
         super().__init__()
-
+        
+        self.usuario = usuario
+        
         if usuario.identificacion != "Trabajador":
             self.title("Listado de Trabajadores")
             self.geometry("800x600")
@@ -99,7 +102,13 @@ class InterfazListadoTrabajadores(tk.Tk):
             messagebox.showwarning("Seleccionar Trabajador", "Por favor, seleccione un trabajador de la lista.")
 
     def ver_perfil(self):
-        messagebox.showinfo("Ver mi perfil", "Funcionalidad para ver el perfil del usuario")
+        db = DAO()
+        trabajador = db.ObtenerTrabajadorPorUsername(self.usuario.username)
+        familiares = db.ObtenerCargasFamiliares(trabajador.rut)
+        contactos = db.ObtenerContactosEmergencia(trabajador.rut)
+        
+        perfil_usuario = PerfilUsuario(self.usuario, trabajador, familiares, contactos)
+        perfil_usuario.mainloop()
 
     def refrescar_lista_trabajadores(self):
         self.tabla.delete(*self.tabla.get_children())

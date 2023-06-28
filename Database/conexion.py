@@ -233,7 +233,23 @@ class DAO:
 
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
-                
+    
+    def ObtenerTrabajadorPorUsername(self, username):
+        if self.conexion.is_connected():
+            try:
+                cursor = self.conexion.cursor(buffered=True)
+                query = """SELECT trabajador.rut FROM trabajador
+                INNER JOIN credencialtrabajador as ct ON trabajador.rut = ct.trabajador_rut
+                INNER JOIN credencial ON ct.usuario_username = credencial.username
+                WHERE credencial.username = '{0}'"""
+                cursor.execute(query.format(username))
+                resultado = cursor.fetchone()
+                if resultado is None:
+                    return None
+                return self.ObtenerTrabajador(resultado[0])
+            except Error as ex:
+                print("Error de conexión: {0} ".format(ex))
+    
     def ObtenerTrabajador(self, rut):
         if self.conexion.is_connected():
             try:
@@ -491,5 +507,27 @@ class DAO:
                 query = "DELETE FROM telefono WHERE numero = {0} AND trabajador_rut = {1}"
                 cursor.execute(query.format(numero, trabajador_rut))
                 self.conexion.commit()
+            except Error as ex:
+                print("Error de conexión: {0} ".format(ex))
+                
+    def CambiarContrasenia(self, username, contraseniaAnterior, contraseniaNueva, confirmContraseniaNueva):
+        if self.conexion.is_connected():
+            try:
+                cursor = self.conexion.cursor(buffered=True)
+                query = "SELECT password FROM credencial WHERE username = {0}"
+                cursor.execute(query.format(username))
+                respuesta = cursor.fetchone()
+                
+                if respuesta is None:
+                    return False
+                if respuesta[0] != contraseniaAnterior:
+                    return False
+                if contraseniaNueva != confirmContraseniaNueva:
+                    return False
+                
+                query = "UPDATE credencial SET password = {0} WHERE username = {1}"
+                cursor.execute(query.format(contraseniaNueva, username))
+                self.conexion.commit()
+                return True
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
