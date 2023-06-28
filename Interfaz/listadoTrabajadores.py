@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from Interfaz.registroTrabajador import RegistroTrabajador
 from Interfaz.perfil import PerfilUsuario
+from Interfaz.login import Login
 from Database.conexion import DAO
 
 class InterfazListadoTrabajadores(tk.Tk):
@@ -102,6 +103,10 @@ class InterfazListadoTrabajadores(tk.Tk):
             messagebox.showwarning("Seleccionar Trabajador", "Por favor, seleccione un trabajador de la lista.")
 
     def ver_perfil(self):
+        if self.usuario.username == "admin":
+            messagebox.showinfo("Ver perfil de usuario", "Este perfil es una cuenta de administrador por defecto y no está asociada a ningún trabajador.")
+            return
+        
         db = DAO()
         trabajador = db.ObtenerTrabajadorPorUsername(self.usuario.username)
         familiares = db.ObtenerCargasFamiliares(trabajador.rut)

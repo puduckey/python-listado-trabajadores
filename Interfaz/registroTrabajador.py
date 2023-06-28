@@ -201,6 +201,7 @@ class RegistroTrabajador(tk.Tk):
         self.combo_sexo.set(trabajador.sexo)
         self.entry_direccion.insert(tk.END, trabajador.direccion)
         self.combo_area.set(trabajador.departamento)
+        self.actualizar_cargos(None)
         self.combo_cargo.set(trabajador.cargo)
         self.combo_dia.set(trabajador.fecha_dd)
         self.combo_mes.set(trabajador.fecha_mm)
@@ -336,11 +337,11 @@ class RegistroTrabajador(tk.Tk):
                     return True
                 else:
                     ventana_carga_familiar.grab_set()
-                    messagebox.showerror("Formulario no válido", "Por favor, ingrese un RUT válido.")
+                    messagebox.showerror("Formulario no válido", "Por favor, ingrese un RUT válido.", parent=self)
                     return False
             else:
                 ventana_carga_familiar.grab_set()
-                messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.")
+                messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.", parent=self)
                 return False
 
         def guardar_carga_familiar():
@@ -387,7 +388,7 @@ class RegistroTrabajador(tk.Tk):
             self.familiaresBorrados.append(self.listaCargasFamiliares[index]) # guardar los familiares borrados
             self.listaCargasFamiliares.pop(index)
             self.actualizar_lista_cargas_familiares()
-            messagebox.showinfo("Carga familiar eliminada", "¡La carga familiar seleccionada ha sido borrada!")
+            messagebox.showinfo("Carga familiar eliminada", "¡La carga familiar seleccionada ha sido borrada!", parent=self)
             # delete a bd si existe
 
     def agregar_contacto_emergencia(self, contacto = None):
@@ -437,10 +438,10 @@ class RegistroTrabajador(tk.Tk):
                 if(self.validar_telefono(campos[3])):
                     return True
                 else:
-                    messagebox.showerror("Formulario no válido", "Por favor, ingrese un número teléfonico válido.")
+                    messagebox.showerror("Formulario no válido", "Por favor, ingrese un número teléfonico válido.", parent=ventana_contacto)
                     return False
             else:
-                messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.")
+                messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.", parent=ventana_contacto)
                 return False
         
         # CONTACTOS
@@ -484,7 +485,7 @@ class RegistroTrabajador(tk.Tk):
             self.contactosBorrados.append(self.listaContactos[index]) # guarda al contacto borrado
             self.listaContactos.pop(index)
             self.actualizar_lista_contactos()
-            messagebox.showinfo("Contacto eliminado", "¡El contacto seleccionado ha sido borrado!")
+            messagebox.showinfo("Contacto eliminado", "¡El contacto seleccionado ha sido borrado!", parent=self)
 
     def actualizar_lista_cargas_familiares(self):
         self.tree_cargas_familiares.delete(*self.tree_cargas_familiares.get_children())
@@ -497,13 +498,12 @@ class RegistroTrabajador(tk.Tk):
             self.tree_contactos_emergencia.insert("", "end", values=(contacto.nombre + " " + contacto.apellido, contacto.relacion, contacto.telefono))
 
     # TELEFONOS
-
     def agregar_telefono(self):
         telefono = self.entry_telefono.get()
         print("telefono: " + telefono)
         
         if not self.validar_telefono(telefono): # valida el numero de telefono
-            messagebox.showerror("Teléfono no válido", "Por favor, ingrese un número de teléfono valido.")
+            messagebox.showerror("Teléfono no válido", "Por favor, ingrese un número de teléfono valido.", parent=self)
             return
         
         if telefono:
@@ -529,19 +529,19 @@ class RegistroTrabajador(tk.Tk):
                   self.combo_cargo.get(), self.combo_dia.get(), self.combo_mes.get(), self.combo_anio.get()]
         
         if not all(campos):
-            messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.")
+            messagebox.showerror("Formulario no válido", "Por favor, complete todos los campos.", parent=self)
             return False
             
         if not self.validar_rut(campos[0] + campos[1]):
-            messagebox.showerror("Formulario no válido", "Por favor, ingrese un RUT válido.")
+            messagebox.showerror("Formulario no válido", "Por favor, ingrese un RUT válido.",parent=self)
             return False
         
         if not self.actualizando and self.validar_si_rut_existe(campos[0]):
-            messagebox.showerror("Formulario no válido", "El RUT ingresado ya se encuentra registrado.")
+            messagebox.showerror("Formulario no válido", "El RUT ingresado ya se encuentra registrado.", parent=self)
             return False
         
         if not self.validar_fecha(campos[8], campos[9], campos[10]):
-            messagebox.showerror("Formulario no válido", "Por favor, ingrese una fecha válida.")
+            messagebox.showerror("Formulario no válido", "Por favor, ingrese una fecha válida.", parent=self)
             return False
         
         return True
@@ -595,7 +595,10 @@ class RegistroTrabajador(tk.Tk):
             db.RegistrarContactoEmergencia(contacto, trabajador.rut)
 
         # exito
-        mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nDireccion: {direccion}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}\nCredenciales por defecto\nNombre de usuario: {usernameRegistrado}\nContraseña: {password}"
+        mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nDireccion: {direccion}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}"
+        mensaje += "\n\nCredenciales del usuario\nNombre de usuario: {usernameRegistrado}"
+        if not self.actualizando:
+            mensaje += "\nContraseña temporal: {password}"
         tk.messagebox.showinfo("Registro Exitoso", mensaje)
         self.destroy()
     
@@ -641,7 +644,16 @@ class RegistroTrabajador(tk.Tk):
             return True
         except ValueError:
             return False
-                
+    
+    def actualizacion_desde_perfil(self):
+        self.entry_rut.configure(state="readonly")
+        self.entry_dv.configure(state="readonly")
+        self.combo_area.configure(state="disabled")
+        self.combo_cargo.configure(state="disabled")
+        self.combo_dia.configure(state="disabled")
+        self.combo_mes.configure(state="disabled")
+        self.combo_anio.configure(state="disabled")
+    
 if __name__ == "__main__":
     app = RegistroTrabajador()
     app.mainloop()

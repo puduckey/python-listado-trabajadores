@@ -510,11 +510,11 @@ class DAO:
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
                 
-    def CambiarContrasenia(self, username, contraseniaAnterior, contraseniaNueva, confirmContraseniaNueva):
+    def CambiarContrasenia(self, username, contraseniaAnterior, contraseniaNueva):
         if self.conexion.is_connected():
             try:
                 cursor = self.conexion.cursor(buffered=True)
-                query = "SELECT password FROM credencial WHERE username = {0}"
+                query = "SELECT password FROM credencial WHERE username = '{0}'"
                 cursor.execute(query.format(username))
                 respuesta = cursor.fetchone()
                 
@@ -522,10 +522,8 @@ class DAO:
                     return False
                 if respuesta[0] != contraseniaAnterior:
                     return False
-                if contraseniaNueva != confirmContraseniaNueva:
-                    return False
                 
-                query = "UPDATE credencial SET password = {0} WHERE username = {1}"
+                query = "UPDATE credencial SET password = '{0}' WHERE username = '{1}'"
                 cursor.execute(query.format(contraseniaNueva, username))
                 self.conexion.commit()
                 return True
