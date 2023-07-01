@@ -4,7 +4,6 @@ from tkinter import ttk
 from tkinter import messagebox
 from Interfaz.registroTrabajador import RegistroTrabajador
 from Interfaz.perfil import PerfilUsuario
-from Interfaz.login import Login
 from Database.conexion import DAO
 
 class InterfazListadoTrabajadores(tk.Tk):
@@ -12,6 +11,7 @@ class InterfazListadoTrabajadores(tk.Tk):
         super().__init__()
         
         self.usuario = usuario
+        self.title("Menú trabajador")
         
         if usuario.identificacion != "Trabajador":
             self.title("Listado de Trabajadores")

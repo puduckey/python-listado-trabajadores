@@ -207,6 +207,9 @@ class RegistroTrabajador(tk.Tk):
         self.combo_mes.set(trabajador.fecha_mm)
         self.combo_anio.set(trabajador.fecha_aaaa)
         
+        self.entry_rut.configure(state="readonly")
+        self.entry_dv.configure(state="readonly")
+        
         self.actualizar_listado_telefonos()
         self.actualizar_lista_cargas_familiares()
         self.actualizar_lista_contactos()
@@ -596,9 +599,9 @@ class RegistroTrabajador(tk.Tk):
 
         # exito
         mensaje = f"Trabajador registrado:\nRUT: {rut}-{dv}\nNombre: {nombre} {apellido}\nSexo: {sexo}\nDireccion: {direccion}\nÁrea/Departamento: {area}\nCargo: {cargo}\nFecha de Ingreso: {fecha_dia}/{fecha_mes}/{fecha_anio}"
-        mensaje += "\n\nCredenciales del usuario\nNombre de usuario: {usernameRegistrado}"
+        mensaje += f"\n\nCredenciales del usuario\nNombre de usuario: {usernameRegistrado}"
         if not self.actualizando:
-            mensaje += "\nContraseña temporal: {password}"
+            mensaje += f"\nContraseña temporal: {password}"
         tk.messagebox.showinfo("Registro Exitoso", mensaje)
         self.destroy()
     
