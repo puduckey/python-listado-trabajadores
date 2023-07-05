@@ -569,7 +569,7 @@ class RegistroTrabajador(tk.Tk):
         fecha_mes = self.combo_mes.get()
         fecha_anio = self.combo_anio.get()
         
-        username = nombre.lower() + "." + apellido.lower()
+        username = nombre.replace(" ", "").lower() + "." + apellido.replace(" ", "").lower()
         password = "abc123"
         
         db = DAO()

@@ -3,7 +3,7 @@ from mysql.connector import Error
 from Clases.Trabajador import Trabajador
 from Clases.CargaFamiliar import CargaFamiliar
 from Clases.ContactoEmergencia import ContactoEmergencia
-from Clases.Usuario import Usuario
+from Clases.Usuario import CuentaUsuario
 
 class DAO:
     def __init__(self):
@@ -35,7 +35,7 @@ class DAO:
                 if resultado is not None:
                     db_username, db_password, identificacion_nombre = resultado
                     if password == db_password:
-                        usuario = Usuario(db_username, identificacion_nombre)
+                        usuario = CuentaUsuario(db_username, identificacion_nombre)
                         return usuario
                     else:
                         return None
