@@ -1,6 +1,6 @@
 -- BD
-CREATE DATABASE trabajadores;
-USE trabajadores;
+-- CREATE DATABASE trabajadores;
+-- USE trabajadores;
 
 -- TABLAS
 

@@ -4,14 +4,12 @@ from Clases.Trabajador import Trabajador
 from Clases.CargaFamiliar import CargaFamiliar
 from Clases.ContactoEmergencia import ContactoEmergencia
 from Clases.Usuario import CuentaUsuario
+from config import Config
 
 class DAO:
     def __init__(self):
         try:
-            self.conexion = mysql.connector.connect(user='root', password='', 
-                                               host='localhost', port='3306',
-                                               database='trabajadores'
-                                               )
+            self.conexion = mysql.connector.connect(**Config.DB_CONFIG)
             print(self.conexion)
             print("Conexion exitosa")
         except Error as ex:
