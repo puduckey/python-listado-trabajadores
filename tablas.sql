@@ -106,6 +106,21 @@ CREATE TABLE credencialtrabajador (
     FOREIGN KEY (usuario_username) REFERENCES credencial (username)
 );
 
+CREATE TABLE historial_trabajadores (
+    id                INT AUTO_INCREMENT,
+    rut               INT NOT NULL,
+    rut_dv            CHAR(1) NOT NULL,
+    nombre            VARCHAR(30) NOT NULL,
+    apellido          VARCHAR(30) NOT NULL,
+    sexo              VARCHAR(30) NOT NULL,
+    direccion         VARCHAR(120) NOT NULL,
+    cargo_id          VARCHAR(120) NOT NULL,
+    area_departamento VARCHAR(120) NOT NULL,
+    fecha_borrado     DATE NOT NULL,
+    borrado_por   VARCHAR(30) NOT NULL,
+    PRIMARY KEY (id)
+);
+
 -- INSERTS
 
 INSERT INTO identificacion (id, nombre)

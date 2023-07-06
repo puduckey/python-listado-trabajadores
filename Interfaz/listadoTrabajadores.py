@@ -83,7 +83,7 @@ class InterfazListadoTrabajadores(tk.Tk):
         self.tabla.insert("", tk.END, text="", values=(rut, nombre, sexo, areadepartamento, cargo))
 
     def registrar_trabajador(self):
-        registro_trabajador = RegistroTrabajador()
+        registro_trabajador = RegistroTrabajador(usuario=self.usuario)
         registro_trabajador.mainloop()
 
     def modificar_trabajador(self):
@@ -96,18 +96,20 @@ class InterfazListadoTrabajadores(tk.Tk):
             listaFamiliares = db.ObtenerCargasFamiliares(rut)
             listaContactos = db.ObtenerContactosEmergencia(rut)
             
-            registro_trabajador = RegistroTrabajador()
-            registro_trabajador.mostrar_datos_trabajador(trabajador, listaFamiliares, listaContactos)
+            registro_trabajador = RegistroTrabajador(usuario=self.usuario)
+            registro_trabajador.mostrar_datos_trabajador(trabajador, listaFamiliares, listaContactos, True)
             registro_trabajador.mainloop()
         else:
             messagebox.showwarning("Seleccionar Trabajador", "Por favor, seleccione un trabajador de la lista.")
 
     def ver_perfil(self):
+        db = DAO()
+        
         if self.usuario.username == "admin":
-            messagebox.showinfo("Ver perfil de usuario", "Este perfil es una cuenta de administrador por defecto y no está asociada a ningún trabajador.")
+            perfil_usuario = PerfilUsuario(self.usuario, None, None, None)
+            perfil_usuario.mainloop()
             return
         
-        db = DAO()
         trabajador = db.ObtenerTrabajadorPorUsername(self.usuario.username)
         familiares = db.ObtenerCargasFamiliares(trabajador.rut)
         contactos = db.ObtenerContactosEmergencia(trabajador.rut)

@@ -304,6 +304,18 @@ class DAO:
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
     
+    def ObtenerUsernameTrabajador(self, rut):
+        if self.conexion.is_connected():
+            try:
+                cursor = self.conexion.cursor(buffered=True)
+                cursor.execute("SELECT usuario_username FROM credencialtrabajador WHERE trabajador_rut = %s", (rut,))
+                result = cursor.fetchone()
+                if result:
+                    return result[0]
+                return None
+            except Error as ex:
+                print("Error de conexión: {0} ".format(ex))
+    
     def ObtenerIdentificacion(self, cargo):
         if cargo == "Administrador de Sistemas":
             return 1
@@ -454,8 +466,10 @@ class DAO:
                     # ACTUALIZAR CONTACTO
                     query = """
                     UPDATE contactosemergencia SET nombre = '{0}', apellido = '{1}', relacion = {2}, telefono = '{3}', trabajador_rut = {4}
+                    WHERE id = {5}
                     """
-                    cursor.execute(query.format(contacto.nombre, contacto.apellido, id_parentesco, contacto.telefono, trabajador_rut))
+                    cursor.execute(query.format(contacto.nombre, contacto.apellido, id_parentesco, contacto.telefono, trabajador_rut, contacto.id))
+                    
                 else:
                     # REGISTRAR CONTACTO
                     query = """
@@ -494,8 +508,8 @@ class DAO:
                 listaContactos = []
                 
                 for resultado in resultados:
-                    contactos = ContactoEmergencia(resultado[0], resultado[1], resultado[2], resultado[3], resultado[4])
-                    listaContactos.append(contactos)
+                    contacto = ContactoEmergencia(resultado[0], resultado[1], resultado[2], resultado[3], resultado[4])
+                    listaContactos.append(contacto)
                 return listaContactos
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))
@@ -527,5 +541,33 @@ class DAO:
                 cursor.execute(query.format(contraseniaNueva, username))
                 self.conexion.commit()
                 return True
+            except Error as ex:
+                print("Error de conexión: {0} ".format(ex))
+                
+    def BorrarTrabajador(self, trabajador_rut, username):
+        if self.conexion.is_connected():
+            try:
+                t = self.ObtenerTrabajador(trabajador_rut)
+                tUsername = self.ObtenerUsernameTrabajador(trabajador_rut)
+                
+                print("Se va a borrar el siguiente trabajador: " + str(t.rut))
+                cursor = self.conexion.cursor(buffered=True)
+                query = """INSERT INTO historial_trabajadores (rut, rut_dv, nombre, apellido, sexo, direccion, cargo_id, area_departamento, fecha_borrado, borrado_por)
+                VALUES({0},'{1}','{2}','{3}','{4}','{5}','{6}','{7}', NOW(),'{8}')
+                """
+                cursor.execute(query.format(t.rut, t.rut_dv, t.nombre, t.apellido, t.sexo, t.direccion, t.cargo, t.departamento, username))
+                self.conexion.commit()
+                
+                cursor.execute("DELETE FROM credencialtrabajador WHERE trabajador_rut = %s", (t.rut,))
+                cursor.execute("DELETE FROM cargafamiliar WHERE trabajador_rut = %s", (t.rut,))
+                cursor.execute("DELETE FROM contactosemergencia WHERE trabajador_rut = %s", (t.rut,))
+                cursor.execute("DELETE FROM datoslaborales WHERE trabajador_rut = %s", (t.rut,))
+                cursor.execute("DELETE FROM telefono WHERE trabajador_rut = %s", (t.rut,))
+                cursor.execute("DELETE FROM trabajador WHERE rut = %s", (t.rut,))
+                cursor.execute("DELETE FROM credencial WHERE username = %s", (tUsername,))
+                self.conexion.commit()
+                
+                print("Se ha borrado el siguiente trabajador: " + str(t.rut))
+                
             except Error as ex:
                 print("Error de conexión: {0} ".format(ex))

@@ -9,8 +9,9 @@ from Clases.ContactoEmergencia import ContactoEmergencia
 from Database.conexion import DAO
 
 class RegistroTrabajador(tk.Tk):
-    def __init__(self):
+    def __init__(self, usuario):
         super().__init__()
+        self.usuario = usuario
         self.actualizando = False
         
         self.listaTelefonos = []
@@ -181,13 +182,13 @@ class RegistroTrabajador(tk.Tk):
         # boton de registro y cancelar
         self.button_registrar = tk.Button(self.container, text="Registrar", command=self.registrar_trabajador)
         self.button_registrar.pack()
-
+        
         self.combo_sexo.current(0)  # seleccionar el primer valor por defecto
         self.combo_area.bind("<<ComboboxSelected>>", self.actualizar_cargos) # actualiza seleccion
 
         self.actualizar_lista_cargas_familiares()
 
-    def mostrar_datos_trabajador(self, trabajador, listaFamiliares, listaContactos):
+    def mostrar_datos_trabajador(self, trabajador, listaFamiliares, listaContactos, eliminar):
         self.actualizando = True
         
         self.listaTelefonos = trabajador.telefonos
@@ -213,6 +214,10 @@ class RegistroTrabajador(tk.Tk):
         self.actualizar_listado_telefonos()
         self.actualizar_lista_cargas_familiares()
         self.actualizar_lista_contactos()
+        
+        if eliminar:
+            self.button_eliminar = tk.Button(self.container, text="Eliminar trabajador", command=self.eliminar_trabajador)
+            self.button_eliminar.pack()
         
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -604,6 +609,19 @@ class RegistroTrabajador(tk.Tk):
             mensaje += f"\nContraseña temporal: {password}"
         tk.messagebox.showinfo("Registro Exitoso", mensaje)
         self.destroy()
+    
+    def eliminar_trabajador(self):
+        rut = self.entry_rut.get()
+        
+        confirmacion = messagebox.askyesno("Confirmación", "¿Estás seguro de que deseas eliminar al trabajador?", parent=self)
+    
+        if confirmacion:
+            db = DAO()
+            db.BorrarTrabajador(rut, self.usuario.username)
+        
+            mensaje = "El trabajador ha sido eliminado de los registros"
+            tk.messagebox.showinfo("Borrado Exitoso", mensaje)
+            self.destroy()
     
     def validar_rut(self, rut):
         rut = rut.upper().replace(".", "").replace("-", "")
